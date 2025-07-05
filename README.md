@@ -33,7 +33,7 @@ git clone https://modelers.cn/devincool/MindIE_Auto_Deploy_Tool.git
 2. **模型权重**
    - DeepSeek V3（需要 4 机部署，800I-A2-64G/800T-A2-64G）：
    - 👉 [DeepSeek V3 权重](https://modelers.cn/models/MindIE/deepseekv3)
-   
+
    - DeepSeek R1-W8A8（需要 2 机部署，800I-A2-64G/800T-A2-64G）：
    - 👉 [DeepSeek R1 权重](https://modelers.cn/models/State_Cloud/DeepSeek-R1-bf16-hfd-w8a8)
 
@@ -127,11 +127,11 @@ git clone https://modelers.cn/devincool/MindIE_Auto_Deploy_Tool.git
    ```bash
    # 1. 进入docker容器
    docker exec -it xxxx bash
-   
+
    # 2. 进入服务目录
    cd /usr/local/Ascend/mindie/latest/mindie-service/
    ```
-   
+
    日志查看路径：
    - 服务日志：当前目录下的 `output_xxx.log`
    - 算子库日志：`~/atb/log`
@@ -275,7 +275,7 @@ nohup ./bin/mindieservice_daemon > output_$(date +"%Y%m%d%H%M").log 2>&1 &
    - 检查用户名和服务器 IP 地址是否正确
    - 确认目标机器SSH服务是否运行
    - 验证认证方式（密钥/密码）是否正确
-   - 
+   -
 2. **权限问题**
    - 确保脚本有执行权限
 
@@ -294,3 +294,43 @@ nohup ./bin/mindieservice_daemon > output_$(date +"%Y%m%d%H%M").log 2>&1 &
 - 刘志文
 - 黄海宽（中移齐鲁创新院）
 - 高俊秀（中移齐鲁创新院）
+
+## comment
+
+这个 deploy.sh 文件是一个自动化部署脚本，用于在 Ascend NPU 环境下，自动完成 MindIE（大模型服务）单机或多机的 Docker 部署、配置、环境准备和服务启动。它支持一键式部署，适合需要快速、标准化上线 MindIE 服务的场景。
+
+主要功能
+依赖检查
+检查本机是否安装了 Docker 等必要依赖。
+
+配置文件读取与校验
+读取 deploy_config.json 配置文件，校验必需字段（如 world_size、model_path、docker.image 等），并根据 world_size 判断是单机还是多机部署。
+
+单机部署流程（world_size ≤ 8）
+
+校验 device_ids、world_size 等参数。
+启动 Docker 容器，挂载所需目录。
+配置环境变量、修改 MindIE 服务配置。
+检查 transformers 版本兼容性。
+启动 MindIE 服务进程。
+多机部署流程（world_size > 8）
+
+校验多机相关配置（如 master_ip、nodes、SSH 认证等）。
+网络环境检查。
+安装 paramiko，生成分布式 rank_table。
+启动 Docker 容器，分发配置和必要文件。
+容器内环境变量配置、服务配置、内存预热。
+启动 MindIE 服务进程。
+容器和进程管理
+
+自动清理旧容器和相关进程。
+记录当前容器名，便于后续管理。
+错误处理和清理机制，确保异常时资源释放。
+交互式操作
+
+检查 transformers 版本时，支持用户选择是否自动安装指定版本。
+启动服务前，提示用户确认所有节点已准备好。
+适用场景
+Ascend NPU 环境下的 MindIE 服务一键部署。
+支持单机和多机分布式部署。
+需要自动化配置、环境准备、依赖检查和服务启动的场景。
